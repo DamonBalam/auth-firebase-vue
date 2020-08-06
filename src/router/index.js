@@ -1,29 +1,58 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+import Vue from 'vue';
+import VueRouter from 'vue-router';
 
-Vue.use(VueRouter)
+import { auth } from '../firebase';
 
-  const routes = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home
-  },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
-  }
-]
+Vue.use(VueRouter);
+
+const routes = [
+    {
+        path: '/',
+        name: 'Inicio',
+        component: () => import(/* webpackChunkName: "Inicio" */ '../views/Inicio.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/editar/:id',
+        name: 'Editar',
+        component: () => import(/* webpackChunkName: "Editar" */ '../views/Editar.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/agregar',
+        name: 'Agregar',
+        component: () => import(/* webpackChunkName: "Agregar" */ '../views/Agregar.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/registro',
+        name: 'Registro',
+        component: () => import(/* webpackChunkName: "Registro" */ '../views/Registro.vue'),
+    },
+    {
+        path: '/acceso',
+        name: 'Acceso',
+        component: () => import(/* webpackChunkName: "Acceder" */ '../views/Acceso.vue'),
+    },
+];
 
 const router = new VueRouter({
-  mode: 'history',
-  base: process.env.BASE_URL,
-  routes
-})
+    mode: 'history',
+    base: process.env.BASE_URL,
+    routes,
+});
 
-export default router
+router.beforeEach((to, from, next) => {
+    if (to.matched.some((record) => record.meta.requiresAuth)) {
+        const usuario = auth.currentUser;
+
+        if (!usuario) {
+            next({ path: '/acceso' });
+        } else{
+            next();
+        }
+    } else {
+        next();
+    }
+});
+export default router;
